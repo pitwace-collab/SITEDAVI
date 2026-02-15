@@ -28,101 +28,7 @@
             background-color: #000000;
             min-height: 100px;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 5%;
-            border-bottom: 1px solid #222;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            animation: slideDown 0.8s ease-out;
-        }
-
-        .logo-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            animation: fadeIn 1s ease-out forwards;
-        }
-
-        .logo-img {
-            max-height: 90px;
-            width: auto;
-            object-fit: contain;
-            cursor: pointer;
-            transition: transform 0.4s ease, filter 0.4s ease;
-        }
-
-        .logo-img:hover {
-            transform: scale(1.1);
-            filter: brightness(1.2);
-        }
-
-        .search-container {
-            flex: 2;
-            display: flex;
-            justify-content: center;
-            animation: fadeIn 1.2s ease-out forwards;
-        }
-
-        .search-wrapper {
-            width: 100%;
-            max-width: 550px;
-        }
-
-        .search-bar {
-            width: 100%;
-            padding: 16px 25px;
-            background: #050505;
-            border: 1px solid #222;
-            border-radius: 12px;
-            color: #fff;
-            outline: none;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 800;
-            font-size: 15px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .search-bar:focus {
-            border-color: #fff;
-            background: #000;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.1);
-            transform: scale(1.02);
-        }
-
-        @keyframes glowPulse {
-            0% { border-color: #222; }
-            50% { border-color: #444; }
-            100% { border-color: #222; }
-        }
-
-        .search-bar {
-            animation: glowPulse 3s infinite ease-in-out;
-        }
-
-        .nav-right-placeholder {
-            flex: 1;
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-100%); }
-            to { transform: translateY(0); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- FILTRO --- */
-        .filtro-grupo {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
+       
         .filtro-dropdown {
             max-height: 0;
             overflow: hidden;
@@ -2019,4 +1925,5 @@ function limparHistoricoPedidos() {
 
 </body>
 </html>
+
 

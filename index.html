@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="nova.css">
     <title>NOVA FONTE</title>
 
     <style>
@@ -28,7 +28,101 @@
             background-color: #000000;
             min-height: 100px;
             display: flex;
-       
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+            border-bottom: 1px solid #222;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        .logo-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .logo-img {
+            max-height: 90px;
+            width: auto;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.4s ease, filter 0.4s ease;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
+
+        .search-container {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+            animation: fadeIn 1.2s ease-out forwards;
+        }
+
+        .search-wrapper {
+            width: 100%;
+            max-width: 550px;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 16px 25px;
+            background: #050505;
+            border: 1px solid #222;
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-bar:focus {
+            border-color: #fff;
+            background: #000;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        @keyframes glowPulse {
+            0% { border-color: #222; }
+            50% { border-color: #444; }
+            100% { border-color: #222; }
+        }
+
+        .search-bar {
+            animation: glowPulse 3s infinite ease-in-out;
+        }
+
+        .nav-right-placeholder {
+            flex: 1;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- FILTRO --- */
+        .filtro-grupo {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
         .filtro-dropdown {
             max-height: 0;
             overflow: hidden;
@@ -259,7 +353,7 @@
 
     <header class="premium-header">
         <div class="logo-container">
-    <h1 class="logo-texto" id="logoSite">NOVA<span>FONTE</span></h1>
+    
 </div>
 
 
@@ -313,13 +407,19 @@
             <div class="marca-item" onclick="openBrand('RALPH LAUREN')"><img src="ralph.jpeg"></div>
             <div class="marca-item" onclick="openBrand('DENIN TEARS')"><img src="denin.jpeg"></div>
             <div class="marca-item" onclick="openBrand('CORTEIZ')"><img src="corteiz.jpeg"></div>
-            <div class="marca-item" onclick="openBrand('SYNA WORLD')"><img src="syna.jpeg"></div>
+            <div class="marca-item" onclick="openBrand('SYNA WORLD')"><img src="synaworld.jpeg"></div>
             <div class="marca-item" onclick="openBrand('CHROME HEARTS')"><img src="chrome.jpeg"></div>
         </div>
 
         <button class="seta-carrossel btn-mobile-only" onclick="scrollMarcas(1)">&#10095;</button>
     </div>
 </section>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
 
 <script>
 // Garante que o carrossel comece do zero (na Nike) ao carregar a página
@@ -364,7 +464,7 @@ function scrollMarcas(direcao) {
 
     <section class="banner-container">
         <div class="banner-moldura">
-            <img src="banner.jpeg" alt="Destaque" class="img-zoom-suave">
+            <img src="iniciosite1.jpeg" alt="Destaque" class="img-zoom-suave">
         </div>
     </section>
 
@@ -434,44 +534,70 @@ function atualizarContador() {
 function openBrand(brand) {
     const title = document.getElementById('panelTitle');
     const body = document.getElementById('panelBody');
-    
-    const fixos = produtosPorMarca[brand] || [];
-    const bancoNovos = JSON.parse(localStorage.getItem('meusProdutos') || '[]');
-    const novosFiltrados = bancoNovos.filter(p => p.marca.toUpperCase() === brand.toUpperCase());
-    const listaGeral = [...fixos, ...novosFiltrados];
 
     title.innerText = brand;
     body.innerHTML = '<div class="vitrine-fluxo" id="vitrineGeneric"></div>';
+
     const container = document.getElementById('vitrineGeneric');
+    container.innerHTML = '<p style="color:#fff;padding:40px">Carregando...</p>';
 
-    listaGeral.forEach(p => {
-        const imgPrincipal = p.img || (p.imagens ? p.imagens[0] : '');
-        
-        // Lógica para garantir que o precoPix exista e seja menor
-        let valorPix = p.precoPix;
-        if (!valorPix) {
-            // Se não houver precoPix, tira o "R$", calcula 10% de desconto e formata de volta
-            let numPreco = parseFloat(p.preco.replace('R$', '').replace('.', '').replace(',', '.'));
-            valorPix = (numPreco * 0.9).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
+    db.collection("produtos")
+        .where("marca", "==", brand)
+        .get()
+        .then(snapshot => {
 
-        const produtoData = {...p, precoPix: valorPix};
-        const data = JSON.stringify(produtoData).replace(/"/g, '&quot;');
+            container.innerHTML = '';
 
-        container.innerHTML += `
-            <div class="card-soft" onclick="openProductModal(${data})" style="border-radius:15 !important;">
-                <div class="img-container" style="border-radius:15 !important;">
-                    <img src="${imgPrincipal}" style="border-radius:15 !important; object-fit: cover;">
-                </div>
-                <span class="prod-nome" style="text-transform: uppercase;">${p.nome}</span>
-                <div style="display: flex; flex-direction: column; gap: 2px;">
-                    <span class="prod-preco" style="text-decoration: line-through; font-size: 10px; opacity: 0.6;">${p.preco}</span>
-                    <span class="prod-preco-pix" style="color: #28a745; font-size: 14px; font-weight: 900;">${valorPix} no PIX</span>
-                </div>
-            </div>`;
-    });
-    showPanel();
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div style="color:#fff;font-weight:800;padding:40px">
+                        Nenhum produto encontrado
+                    </div>`;
+                showPanel();
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const p = doc.data();
+                const imgPrincipal = p.img || (p.imagens ? p.imagens[0] : '');
+
+                // 🔥 GARANTE PREÇO PIX
+                let valorPix = p.precoPix;
+                if (!valorPix && p.preco) {
+                    let numPreco = parseFloat(
+                        p.preco.replace('R$', '').replace(/\./g, '').replace(',', '.')
+                    );
+                    valorPix = (numPreco * 0.9).toLocaleString(
+                        'pt-BR',
+                        { style: 'currency', currency: 'BRL' }
+                    );
+                }
+
+                const produtoData = { ...p, precoPix: valorPix };
+                const data = JSON.stringify(produtoData).replace(/"/g, '&quot;');
+
+                container.innerHTML += `
+                    <div class="card-soft" onclick="openProductModal(${data})" style="border-radius:15 !important;">
+                        <div class="img-container" style="border-radius:15 !important;">
+                            <img src="${imgPrincipal}" style="border-radius:15 !important; object-fit: cover;">
+                        </div>
+                        <span class="prod-nome" style="text-transform: uppercase;">${p.nome}</span>
+                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                            <span class="prod-preco" style="text-decoration: line-through; font-size: 10px; opacity: 0.6;">
+                                ${p.preco}
+                            </span>
+                            <span class="prod-preco-pix" style="color: #28a745; font-size: 14px; font-weight: 900;">
+                                ${valorPix} no PIX
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            showPanel();
+        });
 }
+
 function abrirTodasRoupas() {
     const title = document.getElementById('panelTitle');
     const body = document.getElementById('panelBody');
@@ -1159,27 +1285,32 @@ function salvarProdutoAdm() {
 
 function salvarProdutoStorage(nome, precoRiscado, precoPix, marca, imagens) {
 
-    const lista = JSON.parse(localStorage.getItem('meusProdutos')) || [];
-
     const produto = {
         nome,
         preco: precoRiscado,
         precoPix,
         marca,
         img: imagens[0],
-        imagens
+        imagens,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    if (indiceProdutoEditando !== null) {
-        lista[indiceProdutoEditando] = produto;
-        indiceProdutoEditando = null;
+    if (indiceProdutoEditando) {
+        // EDITAR
+        db.collection("produtos").doc(indiceProdutoEditando).set(produto)
+            .then(() => {
+                alert("Produto atualizado");
+                indiceProdutoEditando = null;
+                listarProdutosAdm();
+            });
     } else {
-        lista.push(produto);
+        // NOVO
+        db.collection("produtos").add(produto)
+            .then(() => {
+                alert("Produto salvo");
+                listarProdutosAdm();
+            });
     }
-
-    localStorage.setItem('meusProdutos', JSON.stringify(lista));
-
-     mostrarToast('PRODUTO APLICADO COM SUCESSO!');
 
     document.getElementById('admNome').value = '';
     document.getElementById('admPrecoRiscado').value = '';
@@ -1188,8 +1319,6 @@ function salvarProdutoStorage(nome, precoRiscado, precoPix, marca, imagens) {
     document.getElementById('admImgs').value = '';
 
     document.querySelector('#fs-produtos .admfs-action').innerText = 'Salvar produto';
-
-    listarProdutosAdm();
 }
 
 
@@ -1284,60 +1413,68 @@ function listarProdutosAdm() {
     const container = document.getElementById('admListaProdutos');
     if (!container) return;
 
-    const lista = JSON.parse(localStorage.getItem('meusProdutos')) || [];
-    container.innerHTML = '';
+    container.innerHTML = '<p style="opacity:.6">Carregando...</p>';
 
-    if (lista.length === 0) {
-        container.innerHTML = `
-            <p style="opacity:.6">Nenhum produto cadastrado.</p>
-        `;
-        return;
-    }
+    db.collection("produtos").orderBy("criadoEm", "desc").get().then(snapshot => {
+        container.innerHTML = '';
 
-    lista.forEach((p, index) => {
-        container.innerHTML += `
-            <div style="
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-                gap:12px;
-                padding:12px;
-                margin-bottom:10px;
-                border-radius:14px;
-                background:#111;
-                border:1px solid rgba(255,255,255,.08);
-            ">
-                <div style="display:flex;align-items:center;gap:12px">
-                    <img src="${p.img}" style="width:60px;height:60px;border-radius:10px;object-fit:cover">
-                    <div>
-                        <strong>${p.nome}</strong><br>
-                        <span style="text-decoration:line-through;opacity:.6">${p.preco}</span><br>
-                        <span style="color:#2ecc71;font-weight:800">${p.precoPix} no PIX</span>
+        if (snapshot.empty) {
+            container.innerHTML = '<p style="opacity:.6">Nenhum produto cadastrado.</p>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const p = doc.data();
+            const id = doc.id;
+
+            container.innerHTML += `
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    gap:12px;
+                    padding:12px;
+                    margin-bottom:10px;
+                    border-radius:14px;
+                    background:#111;
+                    border:1px solid rgba(255,255,255,.08);
+                ">
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <img src="${p.img}" style="width:60px;height:60px;border-radius:10px;object-fit:cover">
+                        <div>
+                            <strong>${p.nome}</strong><br>
+                            <span style="text-decoration:line-through;opacity:.6">${p.preco}</span><br>
+                            <span style="color:#2ecc71;font-weight:800">${p.precoPix} no PIX</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:10px">
+                        <button onclick="editarProdutoAdm('${id}')" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✏️</button>
+                        <button onclick="excluirProdutoAdm('${id}')" style="background:none;border:none;color:#ff5555;font-size:18px;cursor:pointer">🗑️</button>
                     </div>
                 </div>
-
-                <div style="display:flex;gap:10px">
-                    <button onclick="editarProdutoAdm(${index})" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✏️</button>
-                    <button onclick="excluirProdutoAdm(${index})" style="background:none;border:none;color:#ff5555;font-size:18px;cursor:pointer">🗑️</button>
-                </div>
-            </div>
-        `;
+            `;
+        });
     });
 }
+
+
+
 
 /* ============================= */
 /* EXCLUIR UM PRODUTO */
 /* ============================= */
 
-function excluirProdutoAdm(index) {
-    if (!confirm('Excluir este produto?')) return;
 
-    const lista = JSON.parse(localStorage.getItem('meusProdutos')) || [];
-    lista.splice(index, 1);
-    localStorage.setItem('meusProdutos', JSON.stringify(lista));
+function excluirProdutoAdm(id) {
+    if (!confirm("Excluir este produto?")) return;
 
-    listarProdutosAdm();
+    db.collection("produtos").doc(id).delete().then(() => {
+        listarProdutosAdm();
+    });
 }
+
+
 
 /* ============================= */
 /* LIMPAR TODOS OS PRODUTOS */
@@ -1359,20 +1496,22 @@ window.addEventListener('load', () => {
 });
 
 
-function editarProdutoAdm(index) {
-    const lista = JSON.parse(localStorage.getItem('meusProdutos')) || [];
-    const p = lista[index];
-    if (!p) return;
+function editarProdutoAdm(id) {
+    db.collection("produtos").doc(id).get().then(doc => {
+        if (!doc.exists) return;
 
-    indiceProdutoEditando = index;
+        const p = doc.data();
+        indiceProdutoEditando = id;
 
-    document.getElementById('admNome').value = p.nome;
-    document.getElementById('admPrecoRiscado').value = p.preco;
-    document.getElementById('admPrecoPix').value = p.precoPix;
-    document.getElementById('admMarca').value = p.marca;
+        document.getElementById('admNome').value = p.nome;
+        document.getElementById('admPrecoRiscado').value = p.preco;
+        document.getElementById('admPrecoPix').value = p.precoPix;
+        document.getElementById('admMarca').value = p.marca;
 
-    document.querySelector('#fs-produtos .admfs-action').innerText = 'Aplicar alterações';
+        document.querySelector('#fs-produtos .admfs-action').innerText = 'Aplicar alterações';
+    });
 }
+
 
 
 function finalizarCompra() {
@@ -1688,80 +1827,79 @@ function validarComprovante(input) {
 
 function confirmarPagamento() {
     // 1. VALOR TOTAL
-    const valorTotal = document.getElementById('totalFinal').innerText;
+const valorTotal = document.getElementById('totalFinal').innerText;
 
-    // 2. LISTA DE PRODUTOS (NOME, QTD, TAMANHO)
-    const containerCarrinho = document.getElementById('conteudoCarrinho');
-    const itens = containerCarrinho.children;
-    let listaProdutosTexto = "";
-    let listaProdutosArray = [];
+// 2. LISTA DE PRODUTOS (NOME, QTD, TAMANHO)
+const containerCarrinho = document.getElementById('conteudoCarrinho');
+const itens = containerCarrinho.children;
+let listaProdutosTexto = "";
+let listaProdutosArray = [];
 
-    Array.from(itens).forEach((item) => {
-        let infoCompleta = item.innerText.replace(/\s+/g, ' ').trim();
-        let resumoItem = infoCompleta.split('R$')[0].trim();
+Array.from(itens).forEach((item) => {
+    let infoCompleta = item.innerText.replace(/\s+/g, ' ').trim();
+    let resumoItem = infoCompleta.split('R$')[0].trim();
 
-        if (resumoItem) {
-            listaProdutosTexto += `- ${resumoItem}%0A`;
-            listaProdutosArray.push(resumoItem);
-        }
-    });
-
-    // 3. CAMPOS DO FORMULÁRIO
-    const inputs = document.querySelectorAll('.checkout-form input');
-
-    const nomeCompleto = `${inputs[0]?.value} ${inputs[1]?.value}`;
-    const telefone     = inputs[2]?.value;
-    const cpfCnpj      = inputs[3]?.value;
-    const cep          = inputs[4]?.value;
-    const numeroCasa   = inputs[5]?.value;
-    const endereco     = inputs[6]?.value;
-
-    // 4. COMPROVANTE
-    const fileInput = document.getElementById('file-comprovante');
-    let comprovante = "Não anexado";
-    if (fileInput.files && fileInput.files[0]) {
-        comprovante = fileInput.files[0].name;
+    if (resumoItem) {
+        listaProdutosTexto += `- ${resumoItem}%0A`;
+        listaProdutosArray.push(resumoItem);
     }
+});
 
-    // ===============================
-    // 🔥 SALVAR NO HISTÓRICO (ADM)
-    // ===============================
-    const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+// 3. CAMPOS DO FORMULÁRIO
+const inputs = document.querySelectorAll('.checkout-form input');
 
-    historico.push({
-        data: new Date().toLocaleString('pt-BR'),
-        cliente: nomeCompleto,
-        telefone,
-        cpfCnpj,
-        endereco: `${endereco}, Nº ${numeroCasa} - CEP ${cep}`,
-        produtos: listaProdutosArray,
-        total: valorTotal,
-        comprovante
-    });
+const nomeCompleto = `${inputs[0]?.value} ${inputs[1]?.value}`;
+const telefone     = inputs[2]?.value;
+const cpfCnpj      = inputs[3]?.value;
+const cep          = inputs[4]?.value;
+const numeroCasa   = inputs[5]?.value;
+const endereco     = inputs[6]?.value;
 
-    localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-
-    // 5. MENSAGEM WHATSAPP
-    const mensagem = `*NOVO PEDIDO CONFIRMADO*%0A%0A` +
-        `*📦 PRODUTOS:*%0A${listaProdutosTexto}%0A` +
-        `*💰 VALOR TOTAL:* ${valorTotal}%0A%0A` +
-        `*👤 DADOS DO CLIENTE:*%0A` +
-        `- 📓Nome: ${nomeCompleto}%0A` +
-        `- CPF/CNPJ: ${cpfCnpj}%0A` +
-        `- Telefone: ${telefone}%0A%0A` +
-        `*📍 ENDEREÇO DE ENTREGA:*%0A` +
-        `- 🎇CEP: ${cep}%0A` +
-        `- 🎡Rua: ${endereco}%0A` +
-        `- 📞Número: ${numeroCasa}%0A%0A` +
-        `*📄 COMPROVANTE PIX:*%0A${comprovante}`;
-
-    const seuNumero = "5511952163360";
-
-    window.open(`https://wa.me/${seuNumero}?text=${mensagem}`, '_blank');
-
-    setTimeout(() => { fecharPainelPix(); }, 1000);
+// 4. COMPROVANTE
+const fileInput = document.getElementById('file-comprovante');
+let comprovante = "Não anexado";
+if (fileInput.files && fileInput.files[0]) {
+    comprovante = fileInput.files[0].name;
 }
 
+// ===============================
+// 🔥 SALVAR NO HISTÓRICO (ADM)
+// ===============================
+const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+
+historico.push({
+    data: new Date().toLocaleString('pt-BR'),
+    cliente: nomeCompleto,
+    telefone,
+    cpfCnpj,
+    endereco: `${endereco}, Nº ${numeroCasa} - CEP ${cep}`,
+    produtos: listaProdutosArray,
+    total: valorTotal,
+    comprovante
+});
+
+localStorage.setItem('historicoPedidos', JSON.stringify(historico));
+
+// 5. MENSAGEM WHATSAPP
+const mensagem = `*NOVO PEDIDO CONFIRMADO*%0A%0A` +
+    `*📦 PRODUTOS:*%0A${listaProdutosTexto}%0A` +
+    `*💰 VALOR TOTAL:* ${valorTotal}%0A%0A` +
+    `*👤 DADOS DO CLIENTE:*%0A` +
+    `- 📓Nome: ${nomeCompleto}%0A` +
+    `- CPF/CNPJ: ${cpfCnpj}%0A` +
+    `- Telefone: ${telefone}%0A%0A` +
+    `*📍 ENDEREÇO DE ENTREGA:*%0A` +
+    `- 🎇CEP: ${cep}%0A` +
+    `- 🎡Rua: ${endereco}%0A` +
+    `- 📞Número: ${numeroCasa}%0A%0A` +
+    `*📄 COMPROVANTE PIX:*%0A${comprovante}`;
+
+const seuNumero = "5511952163360";
+
+window.open(`https://wa.me/${seuNumero}?text=${mensagem}`, '_blank');
+
+setTimeout(() => { fecharPainelPix(); }, 1000);
+}
 // 4. VALIDAÇÃO DO CHECKOUT
 function validarEAvancar() {
     const form = document.querySelector('.checkout-form');
@@ -1921,9 +2059,38 @@ function limparHistoricoPedidos() {
 
 </script>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<!-- Configuração do Firebase -->
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAEpdoCWuvtkIx7AXtQFKNhgfaHFjSKefo",
+  authDomain: "novafonte-7625c.firebaseapp.com",
+  projectId: "novafonte-7625c",
+  storageBucket: "novafonte-7625c.firebasestorage.app",
+  messagingSenderId: "222945757505",
+  appId: "1:222945757505:web:b0511ea8fe32c8788e79c0"
+};
+
+// INICIALIZA
+firebase.initializeApp(firebaseConfig);
+
+// SERVIÇOS
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+console.log("🔥 Firebase conectado com sucesso");
+</script>
+
+
+
+
+</script>
+
 
 
 </body>
 </html>
-
-
